@@ -59,7 +59,7 @@ impl ExportedGlobals {
 
         Ok(ExportedGlobal {
             global_name: method_name.to_string(),
-            global: Rc::new(global),
+            global: Rc::new(global.into()),
         })
     }
 }
@@ -175,6 +175,7 @@ methods!(
                         Some("Type `V128` isn't supported yet."),
                     ))
                 }
+                value => unimplemented!("Value `{:?}` is not supported yet", value),
             })
         })
     }

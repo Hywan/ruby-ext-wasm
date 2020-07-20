@@ -71,7 +71,7 @@ methods!(
                     .instance
                     .exports()
                     .find_map(|(_, export)| match export {
-                        Export::Memory(memory) => Some(Memory::new(Rc::new(memory))),
+                        Export::Memory(memory) => Some(Memory::new(Rc::new(memory.into()))),
                         _ => None,
                     });
 

@@ -162,6 +162,6 @@ class MemoryTest < Minitest::Test
     error = assert_raises(RuntimeError) {
       Wasmer::Instance.new(self.bytes).memory.grow 100000
     }
-    assert_equal "Failed to grow the memory: Grow Error: Failed to add pages because would exceed maximum number of pages. Left: 17, Right: 100000, Pages added: 100017.", error.message
+    assert_equal "Failed to grow the memory: The memory could not grow: current size 17 pages, requested increase: 100000 pages.", error.message
   end
 end

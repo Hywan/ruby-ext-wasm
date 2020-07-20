@@ -11,7 +11,7 @@ use rutie::{
     Object, Symbol,
 };
 use std::rc::Rc;
-use wasmer_runtime::{self as runtime, types::Type};
+use wasmer_runtime::{self as runtime, types::Type, DynFunc};
 
 /// The `ExportedFunctions` Ruby class.
 pub struct ExportedFunctions {
@@ -27,7 +27,7 @@ impl ExportedFunctions {
 
     /// Check that an exported function exists.
     pub fn respond_to_missing(&self, method_name: &str) -> bool {
-        self.instance.dyn_func(method_name).is_ok()
+        self.instance.exports.get::<DynFunc>(method_name).is_ok()
     }
 
     /// Call an exported function on the given WebAssembly instance.
@@ -36,12 +36,16 @@ impl ExportedFunctions {
         method_name: &str,
         arguments: Array,
     ) -> Result<AnyObject, AnyException> {
-        let function = self.instance.dyn_func(method_name).map_err(|_| {
-            AnyException::new(
-                "RuntimeError",
-                Some(&format!("Function `{}` does not exist.", method_name)),
-            )
-        })?;
+        let function = self
+            .instance
+            .exports
+            .get::<DynFunc>(method_name)
+            .map_err(|_| {
+                AnyException::new(
+                    "RuntimeError",
+                    Some(&format!("Function `{}` does not exist.", method_name)),
+                )
+            })?;
         let signature = function.signature();
         let parameters = signature.params();
         let number_of_parameters = parameters.len() as isize;
@@ -147,17 +151,18 @@ impl ExportedFunctions {
             .map_err(|e| AnyException::new("RuntimeError", Some(&format!("{}", e))))?;
 
         if !results.is_empty() {
-            Ok(match results[0] {
-                runtime::Value::I32(result) => Fixnum::new(result as i64).into(),
-                runtime::Value::I64(result) => Fixnum::new(result).into(),
-                runtime::Value::F32(result) => Float::new(result as f64).into(),
-                runtime::Value::F64(result) => Float::new(result).into(),
+            Ok(match &results[0] {
+                runtime::Value::I32(result) => Fixnum::new(*result as i64).into(),
+                runtime::Value::I64(result) => Fixnum::new(*result).into(),
+                runtime::Value::F32(result) => Float::new(*result as f64).into(),
+                runtime::Value::F64(result) => Float::new(*result).into(),
                 runtime::Value::V128(_result) => {
                     return Err(AnyException::new(
                         "RuntimeError",
                         Some("Type `V128` isn't supported yet."),
                     ))
                 }
+                value => unimplemented!("Value `{:?}` is not supported yet", value),
             })
         } else {
             Ok(NilClass::new().into())

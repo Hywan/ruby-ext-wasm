@@ -32,7 +32,7 @@ class InstanceTest < Minitest::Test
     error = assert_raises(RuntimeError) {
       Wasmer::Instance.new self.invalid_bytes
     }
-    assert_equal "Failed to instantiate the module:\n    compile error: Validation error \"Invalid type\"", error.message
+    assert_equal "Failed to instantiate the module:\n    Validation error: Invalid type (at offset 11)", error.message
   end
 
   def test_basic_sum

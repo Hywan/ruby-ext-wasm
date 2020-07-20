@@ -15,6 +15,6 @@ name = "wasmer"
 crate-type = ["dylib"]
 
 [dependencies]
-wasmer-runtime = "0.14"
+wasmer-runtime = { path = "../wasmer-reborn/lib/deprecated/runtime" }
 rutie = "0.7"
 lazy_static = "1.4"
